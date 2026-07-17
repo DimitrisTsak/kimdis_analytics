@@ -1,0 +1,44 @@
+name: Weekly KIMDIS Update
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'   # Every Sunday at 03:00 UTC
+  workflow_dispatch:        # Allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180    # 3-hour hard limit
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests urllib3
+
+      - name: Initialise database schema
+        run: python init_db.py
+
+      - name: Harvest award decisions
+        run: python bulk_harvester_auctions.py
+
+      - name: Harvest procurement notices
+        run: python bulk_harvester_notices.py
+
+      - name: Build clean database
+        run: python create_clean_db.py
+
+      - name: Publish database to GitHub Releases
+        run: |
+          gh release delete latest --yes 2>/dev/null || true
+          gh release create latest kimdis_clean.db \
+            --title "Database $(date +%Y-%m-%d)" \
+            --notes "Weekly automated update"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
