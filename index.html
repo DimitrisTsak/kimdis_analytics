@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIMDIS Analytics</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="output"></div>
+        <div id="input-row">
+            <span class="prompt">›</span>
+            <input
+                type="text"
+                id="vat-input"
+                autocomplete="off"
+                spellcheck="false"
+                autocorrect="off"
+                autocapitalize="off"
+                placeholder="Enter VAT..."
+            >
+        </div>
+    </div>
+    <!-- sql.js: SQLite compiled to WebAssembly — runs entirely in the browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

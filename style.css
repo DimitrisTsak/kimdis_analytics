@@ -1,0 +1,74 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    background: #0d1117;
+    color: #c9d1d9;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 20px 12px;
+}
+
+#output {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    white-space: pre;
+    padding-bottom: 8px;
+}
+
+#input-row {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid #21262d;
+    padding-top: 10px;
+    margin-top: 6px;
+    flex-shrink: 0;
+}
+
+.prompt {
+    color: #3fb950;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    user-select: none;
+}
+
+#vat-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #3fb950;
+    font-family: inherit;
+    font-size: inherit;
+    outline: none;
+    caret-color: #3fb950;
+}
+
+#vat-input::placeholder {
+    color: #30363d;
+}
+
+/* Scrollbar */
+#output::-webkit-scrollbar { width: 5px; height: 5px; }
+#output::-webkit-scrollbar-track { background: transparent; }
+#output::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+@media (max-width: 768px) {
+    html, body { font-size: 11px; }
+    #app { padding: 10px 12px 8px; }
+}
