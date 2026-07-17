@@ -93,9 +93,10 @@ def create_clean_db():
     dc.execute("DROP TABLE IF EXISTS award_contractors")
     dc.execute("""
         CREATE TABLE award_contractors (
-            adam           TEXT,
-            contractor_vat TEXT,
-            contractor_name TEXT
+            adam              TEXT,
+            contractor_vat    TEXT,
+            contractor_name   TEXT,
+            contractor_amount REAL
         )
     """)
     sc.execute("""
@@ -109,10 +110,11 @@ def create_clean_db():
           AND a.total_cost_without_vat <= ?
     """, (MAX_AMOUNT,))
     rows = sc.fetchall()
-    dc.executemany("INSERT INTO award_contractors VALUES (?,?,?)", rows)
+    dc.executemany("INSERT INTO award_contractors (adam, contractor_vat, contractor_name) VALUES (?,?,?)", rows)
     clean_contractors = len(rows)
 
-    # ── Manual corrections (confirmed against published PDFs) ────────────────
+    # ── Manual corrections ────────────────────────────────────────────────────
+
     # API record had values ~1000x too large; PDF confirms €5,000 with VAT
     dc.execute("""
         UPDATE awards
@@ -120,6 +122,44 @@ def create_clean_db():
             total_cost_with_vat    = 5482.72
         WHERE adam = '26AWRD018937371'
     """)
+
+    # VAT typo in source data: ΚΤΕΛ ΕΒΡΟΥ recorded as 96763330 (missing leading 9)
+    dc.execute("""
+        UPDATE award_contractors
+        SET contractor_vat = '996763330'
+        WHERE contractor_vat = '96763330' AND adam = '26AWRD018398456'
+    """)
+
+    # Per-contractor real amounts for two taxi framework agreements
+    # (26AWRD018311471 and 26AWRD018398456 — full ceiling recorded per contractor;
+    #  real SYMV amounts sourced manually from KIMDIS website)
+    contractor_amounts = [
+        ('26AWRD018311471', '042271404',  81748.50),
+        ('26AWRD018311471', '044925288',  23445.58),
+        ('26AWRD018311471', '053737841',  24377.20),
+        ('26AWRD018311471', '046297889',      0.00),
+        ('26AWRD018311471', '061253582',  30240.42),
+        ('26AWRD018311471', '075491560',  13775.74),
+        ('26AWRD018311471', '125629971',  25002.87),
+        ('26AWRD018311471', '801453375', 110028.63),
+        ('26AWRD018311471', '996763330',      0.00),
+        ('26AWRD018311471', '998136667', 200063.01),
+        ('26AWRD018398456', '042271404',  81748.50),
+        ('26AWRD018398456', '044925288',  23445.58),
+        ('26AWRD018398456', '053737841',  24377.20),
+        ('26AWRD018398456', '046297889',      0.00),
+        ('26AWRD018398456', '061253582',  30240.42),
+        ('26AWRD018398456', '075491560',  13775.74),
+        ('26AWRD018398456', '125629971',  25002.87),
+        ('26AWRD018398456', '801453375', 110028.63),
+        ('26AWRD018398456', '996763330',      0.00),
+        ('26AWRD018398456', '998136667', 200063.01),
+    ]
+    dc.executemany("""
+        UPDATE award_contractors
+        SET contractor_amount = ?
+        WHERE adam = ? AND contractor_vat = ?
+    """, [(amt, adam, vat) for adam, vat, amt in contractor_amounts])
 
     # ── Indexes ──────────────────────────────────────────────────────────────
     dc.execute("CREATE INDEX IF NOT EXISTS idx_awards_vat   ON awards(organization_vat)")
