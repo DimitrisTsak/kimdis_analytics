@@ -29,6 +29,8 @@ def harvest_auctions(start_page=0, pages_to_collect=50):
     current_page = start_page
     total_awards = 0
     total_contractors = 0
+    retries = 0
+    MAX_RETRIES = 5
 
     print(f"Harvesting /auction starting at page {start_page} ({pages_to_collect} pages)...")
 
@@ -36,17 +38,27 @@ def harvest_auctions(start_page=0, pages_to_collect=50):
         target_url = f"{BASE_URL}?page={current_page}&size=100"
 
         try:
-            response = requests.post(target_url, headers=headers, json={}, verify=False)
-
-            if response.status_code == 429:
-                print("  Rate limit hit. Pausing 12 seconds...")
-                time.sleep(12)
-                continue
-
-            if response.status_code != 200:
-                print(f"  HTTP {response.status_code} on page {current_page}. Stopping.")
+            response = requests.post(target_url, headers=headers, json={}, verify=False, timeout=30)
+        except requests.exceptions.RequestException as e:
+            retries += 1
+            if retries > MAX_RETRIES:
+                print(f"  Page {current_page}: {e}. Giving up after {MAX_RETRIES} retries.")
                 break
+            print(f"  Page {current_page}: {e}. Retrying ({retries}/{MAX_RETRIES}) in 10s...")
+            time.sleep(10)
+            continue
+        retries = 0
 
+        if response.status_code == 429:
+            print("  Rate limit hit. Pausing 12 seconds...")
+            time.sleep(12)
+            continue
+
+        if response.status_code != 200:
+            print(f"  HTTP {response.status_code} on page {current_page}. Stopping.")
+            break
+
+        try:
             data = response.json()
             records = data.get("content", [])
 
