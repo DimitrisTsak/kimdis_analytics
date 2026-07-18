@@ -8,7 +8,7 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 180    # 3-hour hard limit
+    timeout-minutes: 340    # GitHub-hosted runners cap jobs at 360 min (6h) regardless
 
     steps:
       - name: Checkout repo
